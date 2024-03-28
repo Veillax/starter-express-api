@@ -16,19 +16,6 @@ const Photo = mongoose.model('Photo', photoSchema);
 
 const uri = process.env.MONGO_URI;
 
-const networkInterfaces = os.networkInterfaces();
-  let ipAddress = '127.0.0.1'; // Default to localhost
-
-  for (const name of Object.keys(networkInterfaces)) {
-     for (const net of networkInterfaces[name]) {
-       // Skip over non-IPv4 and internal (i.e., 127.0.0.1) addresses
-       if (net.family === 'IPv4' && !net.internal) {
-         ipAddress = net.address;
-         break;
-       }
-     }
-  }
-
 // Connect to MongoDB database
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
@@ -50,15 +37,14 @@ const verifyBasicAuth = (req, res, next) => {
 
 // Add Photo (replace with actual logic for authentication and data validation)
 app.post('/api/photos', verifyBasicAuth, (req, res) => {
-  console.log(ipAddress)
   const newPhoto = new Photo({
     link: req.body.link,
     title: req.body.title,
     description: req.body.description
   });
+  console.log(`New Photo: ${req.body.link} - "${req.body.title}" - "${req.body.description}"`)
   newPhoto.save()
     .then(savedPhoto => res.json({ message: 'Photo added successfully', id: savedPhoto._id }))
-    .then(savedPhoto => console.log(`New Photo: ${req.body.link} - "${req.body.title}" - "${req.body.description}"`))
     .catch(err => res.status(500).json({ error: err.message }));
 });
 
@@ -101,26 +87,43 @@ app.get('/api/photos', (req, res) => {
 app.get('/api/photos/:id', (req, res) => {
   const photoId = req.params.id;
   Photo.findById(photoId)
-     .then(photo => {
-       if (!photo) {
-         return res.status(404).json({ message: 'Photo not found' });
-       }
-       console.log(`Image: ${req.params.id} - ${photo.link}`)
-       // Use the 'request' library to fetch the image
-       request.get(photo.link)
-         .on('response', function(response) {
-           // Set the content type to the image's MIME type
-           res.set('Content-Type', response.headers['content-type']);
-         })
-         .on('error', function(err) {
-           // Handle any errors that occur during the request
-           res.status(500).json({ error: err.message });
-         })
-         .pipe(res); // Pipe the image data to the response
-     })
-     .catch(err => res.status(500).json({ error: err.message }));
- });
- 
+    .then(photo => {
+      if (!photo) {
+        return res.status(404).json({ message: 'Photo not found' });
+      }
+      console.log(`Image: ${req.params.id} - ${photo.link}`)
+      // Use the 'request' library to fetch the image
+      request.get(photo.link)
+        .on('response', function (response) {
+          // Set the content type to the image's MIME type
+          res.set('Content-Type', response.headers['content-type']);
+        })
+        .on('error', function (err) {
+          // Handle any errors that occur during the request
+          res.status(500).json({ error: err.message });
+        })
+        .pipe(res); // Pipe the image data to the response
+    })
+    .catch(err => res.status(500).json({ error: err.message }));
+});
+
+app.get('/api/ip', (req, res) => {
+  const networkInterfaces = os.networkInterfaces();
+  let ipAddress = '127.0.0.1'; // Default to localhost
+
+  // Iterate over network interfaces to find the external IP address
+  for (const name of Object.keys(networkInterfaces)) {
+    for (const net of networkInterfaces[name]) {
+      // Skip over non-IPv4 and internal (i.e., 127.0.0.1) addresses
+      if (net.family === 'IPv4' && !net.internal) {
+        ipAddress = net.address;
+        break;
+      }
+    }
+  }
+
+  res.json({ ip: ipAddress });
+});
 
 
 app.listen(3000, () => console.log('Server listening on port 3000'));
