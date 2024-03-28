@@ -1,36 +1,35 @@
+const googlePhotosAlbumImageUrlFetch = require("google-photos-album-image-url-fetch");
 const express = require('express');
-const cors = require('cors'); // Add cors library
-const cheerio = require('cheerio');
-const axios = require('axios');
+const cors = require('cors');
 
 const app = express();
-const port = process.env.PORT || 3000; // Use environment variable for port
+const PORT = process.env.PORT || 3000;
 
-// Enable CORS for all origins (for development)
-app.use(cors({ origin: true })); // Change origin to your website's URL for production
+app.use(cors());
 
-app.get('/extract-urls', async (req, res) => {
-  const albumUrl = req.query.url; // Get album URL from query parameter
+const main = async (album) => {
+    try {
+        const re = await googlePhotosAlbumImageUrlFetch.fetchImageUrls(album);
+        const photoUrls = re.map((item) => item.url); 
+        return photoUrls;
+    } catch (error) {
+        console.error('Error fetching image URLs:', error.message);
+    }
+};
 
-  if (!albumUrl) {
-    return res.status(400).send('Missing album URL');
-  }
+app.get('/extract', async (req, res) => {
+    try {
+        const albumUrl = req.query.url
+        if (!albumUrl) {
+            return res.status(400).json({ error: 'Missing album URL' })
+        }
+        const photoUrls = await main(albumUrl);
+        return res.status(200).json({"photoUrls": photoUrls})
 
-  try {
-    const response = await axios.get(albumUrl);
-    const $ = cheerio.load(response.data);
-
-    const imageUrls = [];
-    $('img[src]').each((i, element) => {
-      const imageUrl = $(element).attr('src');
-      imageUrls.push(imageUrl);
-    });
-
-    res.json({ imageUrls });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Failed to extract URLs');
-  }
+    } catch (err) { console.error(err) }
 });
 
-app.listen(port, () => console.log(`Server listening on port ${port}`));
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+
