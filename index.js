@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const request = require('request');
-const os = require('os');
 
 // Define schema for photo data
 const photoSchema = new mongoose.Schema({
@@ -87,43 +86,25 @@ app.get('/api/photos', (req, res) => {
 app.get('/api/photos/:id', (req, res) => {
   const photoId = req.params.id;
   Photo.findById(photoId)
-     .then(photo => {
-       if (!photo) {
-         return res.status(404).json({ message: 'Photo not found' });
-       }
-       console.log(`Image: ${req.params.id} - ${photo.link}`)
-       // Use the 'request' library to fetch the image
-       request.get(photo.link)
-         .on('response', function(response) {
-           // Set the content type to the image's MIME type
-           res.set('Content-Type', response.headers['content-type']);
-         })
-         .on('error', function(err) {
-           // Handle any errors that occur during the request
-           res.status(500).json({ error: err.message });
-         })
-         .pipe(res); // Pipe the image data to the response
-     })
-     .catch(err => res.status(500).json({ error: err.message }));
- });
- 
- app.get('/api/ip', (req, res) => {
-  const networkInterfaces = os.networkInterfaces();
-  let ipAddress = '127.0.0.1'; // Default to localhost
-
-  for (const name of Object.keys(networkInterfaces)) {
-     for (const net of networkInterfaces[name]) {
-       // Skip over non-IPv4 and internal (i.e., 127.0.0.1) addresses
-       if (net.family === 'IPv4' && !net.internal) {
-         ipAddress = net.address;
-         break;
-       }
-     }
-  }
-
-  res.json({ ip: ipAddress });
- });
- 
+    .then(photo => {
+      if (!photo) {
+        return res.status(404).json({ message: 'Photo not found' });
+      }
+      console.log(`Image: ${req.params.id} - ${photo.link}`)
+      // Use the 'request' library to fetch the image
+      request.get(photo.link)
+        .on('response', function (response) {
+          // Set the content type to the image's MIME type
+          res.set('Content-Type', response.headers['content-type']);
+        })
+        .on('error', function (err) {
+          // Handle any errors that occur during the request
+          res.status(500).json({ error: err.message });
+        })
+        .pipe(res); // Pipe the image data to the response
+    })
+    .catch(err => res.status(500).json({ error: err.message }));
+});
 
 
 app.listen(3000, () => console.log('Server listening on port 3000'));
