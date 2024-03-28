@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const request = require('request');
+const os = require('os');
 
 // Define schema for photo data
 const photoSchema = new mongoose.Schema({
@@ -107,8 +108,20 @@ app.get('/api/photos/:id', (req, res) => {
  });
  
  app.get('/api/ip', (req, res) => {
-  const ip = req.connection.remoteAddress;
-  res.json({ ip: ip });
+  const networkInterfaces = os.networkInterfaces();
+  let ipAddress = '127.0.0.1'; // Default to localhost
+
+  for (const name of Object.keys(networkInterfaces)) {
+     for (const net of networkInterfaces[name]) {
+       // Skip over non-IPv4 and internal (i.e., 127.0.0.1) addresses
+       if (net.family === 'IPv4' && !net.internal) {
+         ipAddress = net.address;
+         break;
+       }
+     }
+  }
+
+  res.json({ ip: ipAddress });
  });
  
 
