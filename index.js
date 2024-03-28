@@ -16,17 +16,18 @@ const Photo = mongoose.model('Photo', photoSchema);
 
 const uri = process.env.MONGO_URI;
 
-for (const name of Object.keys(networkInterfaces)) {
-  for (const net of networkInterfaces[name]) {
-    // Skip over non-IPv4 and internal (i.e., 127.0.0.1) addresses
-    if (net.family === 'IPv4' && !net.internal) {
-      ipAddress = net.address;
-      break;
-    }
-  }
-}
+const networkInterfaces = os.networkInterfaces();
+  let ipAddress = '127.0.0.1'; // Default to localhost
 
-console.log(`IP Address: ${ipAddress}`)
+  for (const name of Object.keys(networkInterfaces)) {
+     for (const net of networkInterfaces[name]) {
+       // Skip over non-IPv4 and internal (i.e., 127.0.0.1) addresses
+       if (net.family === 'IPv4' && !net.internal) {
+         ipAddress = net.address;
+         break;
+       }
+     }
+  }
 
 // Connect to MongoDB database
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -49,6 +50,7 @@ const verifyBasicAuth = (req, res, next) => {
 
 // Add Photo (replace with actual logic for authentication and data validation)
 app.post('/api/photos', verifyBasicAuth, (req, res) => {
+  console.log(ipAddress)
   const newPhoto = new Photo({
     link: req.body.link,
     title: req.body.title,
@@ -117,7 +119,8 @@ app.get('/api/photos/:id', (req, res) => {
          .pipe(res); // Pipe the image data to the response
      })
      .catch(err => res.status(500).json({ error: err.message }));
- }); 
+ });
+ 
 
 
 app.listen(3000, () => console.log('Server listening on port 3000'));
