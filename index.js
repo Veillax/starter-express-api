@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const request = require('request');
 
+require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+  console.log('addr: ' + add);
+})
+
 // Define schema for photo data
 const photoSchema = new mongoose.Schema({
   link: { type: String, required: true },
