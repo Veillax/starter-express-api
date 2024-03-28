@@ -3,10 +3,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const request = require('request');
 
-require('dns').lookup(require('os').hostname(), function (err, add, fam) {
-  console.log('addr: ' + add);
-})
-
 // Define schema for photo data
 const photoSchema = new mongoose.Schema({
   link: { type: String, required: true },
@@ -110,4 +106,11 @@ app.get('/api/photos/:id', (req, res) => {
      .catch(err => res.status(500).json({ error: err.message }));
  });
  
+ app.get('/api/ip', (req, res) => {
+  const ip = req.connection.remoteAddress;
+  res.json({ ip: ip });
+ });
+ 
+
+
 app.listen(3000, () => console.log('Server listening on port 3000'));
