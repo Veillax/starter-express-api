@@ -28,7 +28,7 @@ app.use(cors());
 
 const verifyBasicAuth = (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Basic ')) {
-    if (req.headers.authorization.substring(6) === "MDE4ZTgyNmUtMzQ0My03MDY2LWFhYWYtZTE1NmFlNzk4MGZhOjAxOGU4MjY0LTk2NzktNzYzNi1iYzI0LTQyY2YyNzAwYjYxNC0wMThlODI2ZS03OTU3LTc4YTktYjk1Yy1mZmM1ODI5NDMyNTUtMDE4ZTgyNmUtNzk1Ny03M2EwLTljYTgtYTRiNjM2MDBlOGExLTAxOGU4MjZlLTc5NTctNzk1Zi1iNjlhLWNmM2RlYzhjOGVlOA0K") {
+    if (req.headers.authorization.substring(6) === process.env.AUTH_PASSWORD) {
       next();
     } else { return res.status(401).send({ message: 'Unauthorized!' }); }
   }
