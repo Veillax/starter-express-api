@@ -13,7 +13,7 @@ const photoSchema = new mongoose.Schema({
 // Create Mongoose Model for photos
 const Photo = mongoose.model('Photo', photoSchema);
 
-const uri = "mongodb+srv://veillax:to84acY0H4SuUF9b@veillax.8tjjxqb.mongodb.net/Web?retryWrites=true&w=majority&appName=veillax";
+const uri = process.env.MONGO_URI;
 
 // Connect to MongoDB database
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
