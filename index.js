@@ -1,9 +1,22 @@
 const express = require('express');
+const cors = require('cors');
 const cheerio = require('cheerio');
 const axios = require('axios');
 
 const app = express();
 const port = process.env.PORT || 3000; // Use environment variable for port
+
+const allowedOrigins = ['https://veillax.com', 'http://localhost:3000']; // Replace 3000 with your frontend port
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true); // Allow requests with no origin (localhost development)
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin not allowed by CORS'));
+  }
+}));
 
 app.get('/extract-urls', async (req, res) => {
   const albumUrl = req.query.url; // Get album URL from query parameter
